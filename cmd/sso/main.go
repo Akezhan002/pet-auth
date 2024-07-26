@@ -1,10 +1,13 @@
 package main
 
 import (
+	"example.com/pet_auth/internal/app"
 	"example.com/pet_auth/internal/config"
 	"example.com/pet_auth/internal/lib/logger/handlers/slogpretty"
 	"log/slog"
 	"os"
+	"os/signal"
+	"syscall"
 )
 
 const (
@@ -19,9 +22,21 @@ func main() {
 	log := setupLogger(cfg.Env)
 
 	log.Info("starting application", slog.Any("config", cfg))
+
+	applictaion := app.New(log, cfg.GRPC.Port, cfg.StoragePath, cfg.TokenTTL)
+
+	go applictaion.GRPCSrv.MustRun()
+
 	// TODO: иницилизировать APP
 
 	// TODO: запустить grpc сервер
+
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
+
+	<-stop
+	applictaion.GRPCSrv.Stop()
+	log.Info("Application stop")
 }
 
 func setupLogger(env string) *slog.Logger {
