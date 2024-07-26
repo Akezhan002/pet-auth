@@ -25,7 +25,7 @@ func main() {
 
 	applictaion := app.New(log, cfg.GRPC.Port, cfg.StoragePath, cfg.TokenTTL)
 
-	go applictaion.GRPCSrv.MustRun()
+	go applictaion.GRPCServer.MustRun()
 
 	// TODO: иницилизировать APP
 
@@ -35,7 +35,7 @@ func main() {
 	signal.Notify(stop, syscall.SIGTERM, syscall.SIGINT)
 
 	<-stop
-	applictaion.GRPCSrv.Stop()
+	applictaion.GRPCServer.Stop()
 	log.Info("Application stop")
 }
 

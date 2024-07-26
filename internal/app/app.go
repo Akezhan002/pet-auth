@@ -1,22 +1,34 @@
 package app
 
 import (
-	grpcapp "example.com/pet_auth/internal/app/grpc"
+	"example.com/pet_auth/internal/services/auth"
+	"example.com/pet_auth/internal/storage/sqlite"
 	"log/slog"
 	"time"
+
+	grpcapp "example.com/pet_auth/internal/app/grpc"
 )
 
 type App struct {
-	GRPCSrv *grpcapp.App
+	GRPCServer *grpcapp.App
 }
 
-func New(log *slog.Logger, grpcPort int, storagePath string, tokenTTL time.Duration) *App {
-	// TODO ИНИЦИАЛИЩИРОВАТЬ ХРАНИЛИЩЕ
-	// TODO ИНИЦИАЛИЩИРОВАТЬ AUTHSERVICE
+func New(
+	log *slog.Logger,
+	grpcPort int,
+	storagePath string,
+	tokenTTL time.Duration,
+) *App {
+	storage, err := sqlite.New(storagePath)
+	if err != nil {
+		panic(err)
+	}
 
-	grpcApp := grpcapp.New(log, grpcPort)
+	authService := auth.New(log, storage, storage, storage, tokenTTL)
+
+	grpcApp := grpcapp.New(log, authService, grpcPort)
 
 	return &App{
-		GRPCSrv: grpcApp,
+		GRPCServer: grpcApp,
 	}
 }
